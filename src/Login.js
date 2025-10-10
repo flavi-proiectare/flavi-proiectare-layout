@@ -2,90 +2,114 @@ import React, { useState } from "react";
 import { supabase } from "./supabaseClient";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleLogin(e) {
     e.preventDefault();
     setError("");
-    setSuccess("");
+    setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+    // curățăm spații și transformăm în litere mici
+    const cleanUsername = username.trim().toLowerCase();
+
+    console.log("🔍 Caut username:", cleanUsername);
+
+    // căutăm utilizatorul în tabel (ignorând litere mari/mici)
+    const { data: users, error: userError } = await supabase
+      .from("users")
+      .select("email, username")
+      .eq("username", cleanUsername);
+
+    console.log("📦 Rezultat căutare:", users, "Eroare:", userError);
+
+    if (userError || !users || users.length === 0) {
+      setError("❌ Utilizator inexistent!");
+      setLoading(false);
+      return;
+    }
+
+    const userEmail = users[0].email;
+    console.log("📧 Email găsit:", userEmail);
+
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email: userEmail,
       password,
     });
 
-    if (error) {
-      setError("❌ Date incorecte sau cont inexistent");
-      console.error(error);
+    if (loginError) {
+      console.error("Eroare autentificare:", loginError);
+      setError("❌ Parolă greșită!");
     } else {
-      setSuccess("✅ Autentificare reușită!");
-      window.location.href = "/"; // redirecționează la Dashboard
+      window.location.href = "/";
     }
+
+    setLoading(false);
   }
 
   return (
-    <div style={{
-      maxWidth: 400,
-      margin: "120px auto",
-      padding: 30,
-      border: "1px solid #ddd",
-      borderRadius: 10,
-      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-      background: "#fff"
-    }}>
+    <div
+      style={{
+        maxWidth: 400,
+        margin: "120px auto",
+        padding: 30,
+        border: "1px solid #ddd",
+        borderRadius: 10,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        background: "#fff",
+      }}
+    >
       <h2 style={{ textAlign: "center", marginBottom: 30 }}>
         🔐 Autentificare Flavi Proiectare
       </h2>
+
       <form onSubmit={handleLogin}>
         <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{
-            width: "100%",
-            marginBottom: 15,
-            padding: 10,
-            border: "1px solid #ccc",
-            borderRadius: 5,
-          }}
+          type="text"
+          placeholder="Nume utilizator"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          style={inputStyle}
           required
         />
+
         <input
           type="password"
           placeholder="Parolă"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{
-            width: "100%",
-            marginBottom: 15,
-            padding: 10,
-            border: "1px solid #ccc",
-            borderRadius: 5,
-          }}
+          style={inputStyle}
           required
         />
+
         <button
           type="submit"
+          disabled={loading}
           style={{
             width: "100%",
             padding: 10,
-            background: "#1f2937",
+            background: loading ? "#9ca3af" : "#1f2937",
             color: "white",
             border: "none",
             borderRadius: 5,
             cursor: "pointer",
           }}
         >
-          Autentificare
+          {loading ? "Se conectează..." : "Autentificare"}
         </button>
       </form>
 
       {error && <p style={{ color: "red", marginTop: 15 }}>{error}</p>}
-      {success && <p style={{ color: "green", marginTop: 15 }}>{success}</p>}
     </div>
   );
 }
+
+const inputStyle = {
+  width: "100%",
+  marginBottom: 15,
+  padding: 10,
+  border: "1px solid #ccc",
+  borderRadius: 5,
+};
