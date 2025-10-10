@@ -5,48 +5,55 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   async function handleLogin(e) {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
-    // curățăm spații și transformăm în litere mici
-    const cleanUsername = username.trim().toLowerCase();
+    const normalizedUsername = username.trim().toLowerCase();
 
-    console.log("🔍 Caut username:", cleanUsername);
+    console.log("🔍 Caut utilizator:", normalizedUsername);
 
-    // căutăm utilizatorul în tabel (ignorând litere mari/mici)
-    const { data: users, error: userError } = await supabase
+    // căutăm în tabelul `users`, fără diferență între majuscule/minuscule
+    const { data, error: fetchError } = await supabase
       .from("users")
-      .select("email, username")
-      .eq("username", cleanUsername);
+      .select("id, username, email")
+      .ilike("username", normalizedUsername);
 
-    console.log("📦 Rezultat căutare:", users, "Eroare:", userError);
+    console.log("📦 Rezultat căutare:", data, "Eroare:", fetchError);
 
-    if (userError || !users || users.length === 0) {
-      setError("❌ Utilizator inexistent!");
-      setLoading(false);
+    if (fetchError) {
+      setError("⚠️ Eroare la conexiunea cu baza de date.");
       return;
     }
 
-    const userEmail = users[0].email;
-    console.log("📧 Email găsit:", userEmail);
+    if (!data || data.length === 0) {
+      setError("❌ Utilizator inexistent");
+      return;
+    }
 
+    const user = data[0];
+
+    // generăm emailul automat, bazat pe username
+    const email = `${user.username.toLowerCase()}@flavi.ro`;
+
+    // autentificare în Supabase Auth
     const { error: loginError } = await supabase.auth.signInWithPassword({
-      email: userEmail,
+      email,
       password,
     });
 
     if (loginError) {
-      console.error("Eroare autentificare:", loginError);
-      setError("❌ Parolă greșită!");
-    } else {
-      window.location.href = "/";
+      console.error(loginError);
+      setError("❌ Parolă incorectă sau cont inexistent");
+      return;
     }
 
-    setLoading(false);
+    // salvăm userul logat local (pentru a-l afișa în Dashboard)
+    localStorage.setItem("user", user.username);
+
+    // redirecționăm la Dashboard
+    window.location.href = "/";
   }
 
   return (
@@ -64,40 +71,48 @@ export default function Login() {
       <h2 style={{ textAlign: "center", marginBottom: 30 }}>
         🔐 Autentificare Flavi Proiectare
       </h2>
-
       <form onSubmit={handleLogin}>
         <input
           type="text"
-          placeholder="Nume utilizator"
+          placeholder="Utilizator (ex: radu)"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          style={inputStyle}
+          style={{
+            width: "100%",
+            marginBottom: 15,
+            padding: 10,
+            border: "1px solid #ccc",
+            borderRadius: 5,
+          }}
           required
         />
-
         <input
           type="password"
           placeholder="Parolă"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
+          style={{
+            width: "100%",
+            marginBottom: 15,
+            padding: 10,
+            border: "1px solid #ccc",
+            borderRadius: 5,
+          }}
           required
         />
-
         <button
           type="submit"
-          disabled={loading}
           style={{
             width: "100%",
             padding: 10,
-            background: loading ? "#9ca3af" : "#1f2937",
+            background: "#1f2937",
             color: "white",
             border: "none",
             borderRadius: 5,
             cursor: "pointer",
           }}
         >
-          {loading ? "Se conectează..." : "Autentificare"}
+          Autentificare
         </button>
       </form>
 
@@ -105,11 +120,3 @@ export default function Login() {
     </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  marginBottom: 15,
-  padding: 10,
-  border: "1px solid #ccc",
-  borderRadius: 5,
-};

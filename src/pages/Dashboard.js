@@ -1,8 +1,5 @@
+import React from "react";
+
 export default function Dashboard() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Aici vei vedea rezumatul proiectelor și al taskurilor active.</p>
-    </div>
-  );
+  return <h1>🏗️ Dashboard - Bine ai venit în platforma Flavi Proiectare</h1>;
 }
