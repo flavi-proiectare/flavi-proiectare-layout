@@ -1,5 +1,6 @@
 import React from "react";
 import "./Layout.css";
+import { Link } from "react-router-dom";
 
 const Layout = ({ children }) => {
   return (
@@ -8,10 +9,10 @@ const Layout = ({ children }) => {
         <h2>Flavi Proiectare</h2>
         <nav>
           <ul>
-            <li><a href="/">Dashboard</a></li>
-            <li><a href="/proiecte">Proiecte</a></li>
-            <li><a href="/taskuri">Taskuri</a></li>
-            <li><a href="/setari">Setări</a></li>
+            <li><Link to="/">Dashboard</Link></li>
+            <li><Link to="/proiecte">Proiecte</Link></li>
+            <li><Link to="/taskuri">Taskuri</Link></li>
+            <li><Link to="/setari">Setări</Link></li>
           </ul>
         </nav>
       </aside>

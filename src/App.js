@@ -1,12 +1,23 @@
 import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
+import Dashboard from "./pages/Dashboard";
+import Proiecte from "./pages/Proiecte";
+import Taskuri from "./pages/Taskuri";
+import Setari from "./pages/Setari";
 
 function App() {
   return (
-    <Layout>
-      <h1>Bun venit în platforma Flavi Proiectare</h1>
-      <p>Aici vor apărea proiectele, taskurile și documentele generate automat.</p>
-    </Layout>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/proiecte" element={<Proiecte />} />
+          <Route path="/taskuri" element={<Taskuri />} />
+          <Route path="/setari" element={<Setari />} />
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 
