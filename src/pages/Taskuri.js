@@ -1,8 +1,8 @@
-export default function Taskuri() {
+export default function Proiecte() {
   return (
     <div>
-      <h1>Taskuri</h1>
-      <p>Planificare și urmărire sarcini pentru fiecare coleg.</p>
+      <h1>Proiecte</h1>
+      <p>Listă proiecte în lucru, cu stadiu și beneficiar.</p>
     </div>
   );
 }
