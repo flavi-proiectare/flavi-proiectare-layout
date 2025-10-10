@@ -1,8 +1,8 @@
 export default function Proiecte() {
   return (
     <div>
-      <h1>Proiecte</h1>
-      <p>Listă proiecte în lucru, cu stadiu și beneficiar.</p>
+      <h1>📁 Pagina Proiecte</h1>
+      <p>Aici vor apărea proiectele tale active.</p>
     </div>
   );
 }

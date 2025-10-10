@@ -9,17 +9,23 @@ const Layout = ({ children }) => {
         <h2>Flavi Proiectare</h2>
         <nav>
           <ul>
-            <li><Link to="/">Dashboard</Link></li>
-            <li><Link to="/proiecte">Proiecte</Link></li>
-            <li><Link to="/taskuri">Taskuri</Link></li>
-            <li><Link to="/setari">Setări</Link></li>
+            <li>
+              <Link to="/">Dashboard</Link>
+            </li>
+            <li>
+              <Link to="/proiecte">Proiecte</Link>
+            </li>
+            <li>
+              <Link to="/taskuri">Taskuri</Link>
+            </li>
+            <li>
+              <Link to="/setari">Setări</Link>
+            </li>
           </ul>
         </nav>
       </aside>
 
-      <main className="content">
-        {children}
-      </main>
+      <main className="content">{children}</main>
     </div>
   );
 };

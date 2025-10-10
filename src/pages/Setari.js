@@ -1,8 +1,8 @@
 export default function Setari() {
   return (
     <div>
-      <h1>Setări</h1>
-      <p>Configurare utilizatori, sabloane și permisiuni.</p>
+      <h1>⚙️ Pagina Setări</h1>
+      <p>Configurare utilizatori, roluri și șabloane documente.</p>
     </div>
   );
 }

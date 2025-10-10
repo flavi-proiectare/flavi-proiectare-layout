@@ -1,8 +1,8 @@
-export default function Proiecte() {
+export default function Taskuri() {
   return (
     <div>
-      <h1>Proiecte</h1>
-      <p>Listă proiecte în lucru, cu stadiu și beneficiar.</p>
+      <h1>🧱 Pagina Taskuri</h1>
+      <p>Lista sarcinilor și responsabililor din birou.</p>
     </div>
   );
 }
