@@ -6,8 +6,6 @@ const Proiecte = () => {
   const [proiecte, setProiecte] = useState([]);
   const [listaResponsabili, setListaResponsabili] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [istoric, setIstoric] = useState([]);
-
   const [form, setForm] = useState({
     nume_client: "",
     beneficiar: "",
@@ -16,27 +14,40 @@ const Proiecte = () => {
     titlu_proiect: "",
     data_predare: "",
     responsabil: "",
-    suprafata: "",
     servicii: [],
     total: 0,
   });
 
+  // 🔹 Lista completă servicii + avize + studii
   const listaServicii = [
     { id: "cu", nume: "Certificat de urbanism", pret: 500 },
-    { id: "dtac", nume: "Documentație D.T.A.C.", pret: 2500 },
-    { id: "dtad", nume: "Documentație D.T.A.D.", pret: 1500 },
-    { id: "avize", nume: "Obținere avize", pret: 1200 },
+    { id: "datd1", nume: "D.A.T.D. (1 construcție)", pret: 1000 },
+    { id: "datd2", nume: "D.A.T.D. (2 construcții)", pret: 1500 },
+    { id: "datd3", nume: "D.A.T.D. (>2 construcții)", pret: 2500 },
+    { id: "datc1", nume: "D.A.T.C. - Parter", pret: 2500 },
+    { id: "datc2", nume: "D.A.T.C. - Parter + Etaj", pret: 3500 },
+    { id: "pt1", nume: "Proiect tehnic - Parter", pret: 5000 },
+    { id: "pt2", nume: "Proiect tehnic - Parter + Etaj", pret: 8000 },
     { id: "expertiza", nume: "Expertiză tehnică", pret: 2500 },
-    { id: "releveu", nume: "Releveu", pret: 1000 },
+    { id: "releveu", nume: "Releveu construcție", pret: 1000 },
+    { id: "memoriu", nume: "Memoriu tehnic", pret: 500 },
+    { id: "memoriu_det", nume: "Memoriu tehnic detaliat", pret: 600 },
+    { id: "aviz_ocpi", nume: "Plan încadrare OCPI", pret: 140 },
+    { id: "aviz_ee", nume: "Aviz energie electrică", pret: 215 },
+    { id: "aviz_salub", nume: "Aviz salubritate", pret: 205 },
+    { id: "aviz_mediu1", nume: "Aviz Mediu - Etapa 1", pret: 200 },
+    { id: "aviz_mediu2", nume: "Aviz Mediu - Etapa 2", pret: 700 },
+    { id: "aviz_dsp", nume: "Aviz D.S.P.", pret: 500 },
+    { id: "aviz_dsv", nume: "Aviz D.S.V.", pret: 100 },
+    { id: "aviz_osp", nume: "Aviz O.S.P.A.", pret: 100 },
+    { id: "aviz_cultura", nume: "Documentație cultură", pret: 100 },
+    { id: "st_geoteh1", nume: "Studiu geotehnic - Parter", pret: 600 },
+    { id: "st_geoteh2", nume: "Studiu geotehnic - Parter + Etaj", pret: 700 },
+    { id: "st_energetic", nume: "Studiu energetic", pret: 600 },
+    { id: "st_nzeb", nume: "Studiu consum energetic (NZEB)", pret: 600 },
   ];
 
-  // 🔹 Obține proiectele existente
-  const fetchProiecte = async () => {
-    const { data, error } = await supabase.from("clienti").select("*").order("data_creare", { ascending: false });
-    if (!error && data) setProiecte(data);
-  };
-
-  // 🔹 Obține lista de responsabili
+  // 🔹 Obține responsabili
   useEffect(() => {
     const fetchResponsabili = async () => {
       const { data, error } = await supabase.from("utilizatori").select("nume");
@@ -46,7 +57,13 @@ const Proiecte = () => {
     fetchProiecte();
   }, []);
 
-  // 🔹 Selectare serviciu
+  // 🔹 Obține lista proiectelor
+  const fetchProiecte = async () => {
+    const { data, error } = await supabase.from("clienti").select("*").order("data_creare", { ascending: false });
+    if (!error && data) setProiecte(data);
+  };
+
+  // 🔹 Selectare servicii
   const toggleServiciu = (serviciu) => {
     let updated;
     if (form.servicii.find((s) => s.id === serviciu.id)) {
@@ -58,48 +75,53 @@ const Proiecte = () => {
     setForm({ ...form, servicii: updated, total });
   };
 
-  // 🔹 Modificare preț manual
   const updatePret = (id, pret) => {
     const updated = form.servicii.map((s) => (s.id === id ? { ...s, pret: parseFloat(pret) || 0 } : s));
     const total = updated.reduce((sum, s) => sum + s.pret, 0);
     setForm({ ...form, servicii: updated, total });
   };
 
-  // 🔹 Salvare proiect + generare taskuri
+  // 🔹 Salvare proiect complet
   const handleSave = async () => {
     const clientId = uuidv4();
+
     const proiect = {
       id: clientId,
-      ...form,
+      nume_client: form.nume_client,
+      beneficiar: form.beneficiar,
+      domiciliu: form.domiciliu,
+      amplasament: form.amplasament,
+      titlu_proiect: form.titlu_proiect,
+      data_predare: form.data_predare || null,
+      responsabil: form.responsabil,
+      servicii: form.servicii,
+      total: form.total,
       stare: "neînceput",
       culoare_proiect: "#4F46E5",
-      data_creare: new Date().toISOString(),
     };
 
-    const { error } = await supabase.from("clienti").insert([proiect]);
-    if (error) {
-      alert("Eroare la salvarea proiectului!");
-      console.error(error);
+    const { error: err1 } = await supabase.from("clienti").insert([proiect]);
+    if (err1) {
+      alert("❌ Eroare la salvare client!");
+      console.error(err1);
       return;
     }
 
-    // generăm taskuri automat
+    // 🔹 taskuri asociate
     const taskuri = form.servicii.map((s) => ({
       id: uuidv4(),
       client_id: clientId,
       nume_task: s.nume,
       responsabil: form.responsabil,
-      termen: form.data_predare,
+      termen: form.data_predare || null,
       status: "neînceput",
     }));
     await supabase.from("taskuri").insert(taskuri);
 
-    // istoric
-    const log = {
-      data: new Date().toLocaleString(),
-      actiune: `Proiect "${form.titlu_proiect}" creat pentru ${form.nume_client}`,
-    };
-    setIstoric((prev) => [...prev, log]);
+    // 🔹 istoric
+    await supabase.from("istoric").insert([
+      { client_id: clientId, actiune: `Proiect creat: ${form.titlu_proiect}`, tip: "actiune" },
+    ]);
 
     alert("✅ Proiect salvat cu succes!");
     setShowForm(false);
@@ -112,11 +134,10 @@ const Proiecte = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-blue-200 p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-indigo-700">📁 Proiecte / Clienți</h1>
+          <h1 className="text-3xl font-bold text-indigo-800">📁 Proiecte / Clienți</h1>
           <button
             onClick={() => setShowForm(!showForm)}
             className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md"
@@ -125,26 +146,19 @@ const Proiecte = () => {
           </button>
         </div>
 
-        {/* Formular proiect nou */}
         {showForm && (
-          <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
+          <div className="bg-white shadow-lg rounded-xl p-6 mb-8 overflow-y-auto max-h-[80vh]">
             <h2 className="text-2xl font-semibold text-indigo-600 mb-4">Detalii proiect</h2>
 
+            {/* FORM */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <input name="nume_client" placeholder="Nume client" value={form.nume_client} onChange={handleChange}
-                className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
-              <input name="beneficiar" placeholder="Nume beneficiar" value={form.beneficiar} onChange={handleChange}
-                className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
-              <input name="domiciliu" placeholder="Domiciliu beneficiar" value={form.domiciliu} onChange={handleChange}
-                className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
-              <input name="amplasament" placeholder="Amplasament" value={form.amplasament} onChange={handleChange}
-                className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
-              <input name="titlu_proiect" placeholder="Titlu proiect" value={form.titlu_proiect} onChange={handleChange}
-                className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
-              <input type="date" name="data_predare" value={form.data_predare} onChange={handleChange}
-                className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
-              <select name="responsabil" value={form.responsabil} onChange={handleChange}
-                className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 bg-white">
+              <input name="nume_client" placeholder="Nume client" value={form.nume_client} onChange={handleChange} className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
+              <input name="beneficiar" placeholder="Nume beneficiar" value={form.beneficiar} onChange={handleChange} className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
+              <input name="domiciliu" placeholder="Domiciliu beneficiar" value={form.domiciliu} onChange={handleChange} className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
+              <input name="amplasament" placeholder="Amplasament" value={form.amplasament} onChange={handleChange} className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
+              <input name="titlu_proiect" placeholder="Titlu proiect" value={form.titlu_proiect} onChange={handleChange} className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
+              <input type="date" name="data_predare" value={form.data_predare} onChange={handleChange} className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400" />
+              <select name="responsabil" value={form.responsabil} onChange={handleChange} className="p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 bg-white">
                 <option value="">Alege responsabil</option>
                 {listaResponsabili.map((r) => (
                   <option key={r} value={r}>{r}</option>
@@ -163,12 +177,7 @@ const Proiecte = () => {
                       {s.nume}
                     </label>
                     {sel ? (
-                      <input
-                        type="number"
-                        value={sel.pret}
-                        onChange={(e) => updatePret(s.id, e.target.value)}
-                        className="w-24 border rounded-md text-right p-1"
-                      />
+                      <input type="number" value={sel.pret} onChange={(e) => updatePret(s.id, e.target.value)} className="w-24 border rounded-md text-right p-1" />
                     ) : (
                       <span className="text-gray-600 text-sm">{s.pret} lei</span>
                     )}
@@ -181,16 +190,13 @@ const Proiecte = () => {
               Total: {form.total} lei
             </div>
 
-            <button
-              onClick={handleSave}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
+            <button onClick={handleSave} className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
               💾 Salvează proiect
             </button>
           </div>
         )}
 
-        {/* Lista proiecte */}
+        {/* LISTA PROIECTE */}
         <div className="bg-white shadow-md rounded-xl p-6">
           <h2 className="text-xl font-semibold text-indigo-700 mb-4">📋 Lista proiecte</h2>
           {proiecte.length === 0 ? (
@@ -200,7 +206,7 @@ const Proiecte = () => {
               <thead>
                 <tr className="text-left bg-indigo-50">
                   <th className="p-2 border">Client</th>
-                  <th className="p-2 border">Titlu proiect</th>
+                  <th className="p-2 border">Titlu</th>
                   <th className="p-2 border">Amplasament</th>
                   <th className="p-2 border">Responsabil</th>
                   <th className="p-2 border text-center">Status</th>
@@ -210,7 +216,12 @@ const Proiecte = () => {
                 {proiecte.map((p) => (
                   <tr key={p.id} className="hover:bg-gray-50">
                     <td className="p-2 border">{p.nume_client}</td>
-                    <td className="p-2 border">{p.titlu_proiect}</td>
+                    <td
+                      className="p-2 border text-indigo-600 underline cursor-pointer"
+                      onClick={() => (window.location.href = `/client/${p.id}`)}
+                    >
+                      {p.titlu_proiect}
+                    </td>
                     <td className="p-2 border">{p.amplasament}</td>
                     <td className="p-2 border">{p.responsabil}</td>
                     <td className="p-2 border text-center">
@@ -222,22 +233,6 @@ const Proiecte = () => {
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
-
-        {/* Istoric */}
-        <div className="bg-white shadow-md rounded-xl p-6 mt-6">
-          <h2 className="text-lg font-semibold text-indigo-600 mb-2">🕓 Istoric acțiuni</h2>
-          {istoric.length === 0 ? (
-            <p className="text-gray-500">Nicio acțiune recentă.</p>
-          ) : (
-            <ul className="space-y-1 text-sm text-gray-700">
-              {istoric.map((i, idx) => (
-                <li key={idx}>
-                  <strong>{i.data}</strong> — {i.actiune}
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       </div>
