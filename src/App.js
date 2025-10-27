@@ -6,6 +6,7 @@ import Layout from "./Layout";
 import Dashboard from "./pages/Dashboard";
 import Proiecte from "./pages/Proiecte";
 import Taskuri from "./pages/Taskuri";
+import Clienti from "./pages/Clienti"; // 👈 adăugat importul corect
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -33,6 +34,7 @@ export default function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/clienti" element={<Clienti />} /> {/* 👈 adăugată ruta nouă */}
         <Route path="/proiecte" element={<Proiecte />} />
         <Route path="/taskuri" element={<Taskuri />} />
       </Routes>
